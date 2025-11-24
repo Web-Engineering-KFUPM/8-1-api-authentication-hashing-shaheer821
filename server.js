@@ -255,7 +255,35 @@ app.get("/", (_req, res) => {
 // POST /register
 // =========================
 app.post("/register", async (req, res) => {
-  // Implement logic here based on the TODO 1.
+  try {
+    // 1) Read JSON body
+    const { email, password } = req.body || {};
+
+    // 2) Validate required fields
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    // 3) Check if user already exists
+    const existing = users.find((u) => u.email === email);
+    if (existing) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    // 4) Hash the password
+    const hash = await bcrypt.hash(password, 10);
+
+    // 5) Store the new user
+    users.push({ email, passwordHash: hash });
+
+    // 6) Send success response
+    return res.status(201).json({ message: "User registered!" });
+
+  } catch (err) {
+    // 7) Catch any unexpected errors
+    console.error("Register error:", err);
+    return res.status(500).json({ error: "Server error during register" });
+  }
 });
 
 // =========================
